@@ -313,6 +313,12 @@ def _install(
         )
         monkeypatch.setattr(
             T2VImGuiUILoop,
+            "frames_to_blit",
+            BlitModelOutputToScreenLoop.frames_to_blit,
+            raising=False,
+        )
+        monkeypatch.setattr(
+            T2VImGuiUILoop,
             "step",
             BlitModelOutputToScreenLoop.step,
         )
@@ -463,6 +469,17 @@ def test_a_continuous_application_can_wait_for_its_first_prompt(
 
     assert window.session_desc.presentation_mode is PresentationMode.CONTINUOUS
     assert pipeline.caches == []
+
+
+def test_mp4_mode_defaults_to_on_demand_presentation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    window = RecordingWindow()
+    _install(monkeypatch, StubT2VApplication(_stand_in()), window)
+
+    cli.entrypoint(["stub", "--output-path", "clip.mp4", "--", "--prompt", _PROMPT])
+
+    assert window.session_desc.presentation_mode is PresentationMode.ON_DEMAND
 
 
 ## Describing the session to run
